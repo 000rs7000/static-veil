@@ -12,21 +12,25 @@ export const Player = () => {
   const bodyRef = useRef<RapierRigidBody>(null);
   const [, getKeys] = useKeyboardControls();
   const { camera } = useThree();
-  const { flashlightOn, toggleFlashlight, setGameState } = useGameStore();
+  const { flashlightOn, toggleFlashlight, setGameState, gameState } = useGameStore();
   const flashLightRef = useRef<THREE.SpotLight>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'f') {
+      if (e.key.toLowerCase() === 'f' && gameState === 'PLAYING') {
         toggleFlashlight();
       }
-      if (e.key === 'Escape') {
-        setGameState('MENU'); // or PAUSED
+      if (e.key.toLowerCase() === 'm' && gameState === 'PLAYING') {
+        if (document.pointerLockElement) {
+          document.exitPointerLock();
+        } else {
+          setGameState('PAUSED');
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleFlashlight, setGameState]);
+  }, [toggleFlashlight, gameState, setGameState]);
 
   // Sync camera position with physics body
   useFrame((state) => {
@@ -83,7 +87,12 @@ export const Player = () => {
 
   return (
     <>
-      <PointerLockControls />
+      {gameState === 'PLAYING' && (
+         <PointerLockControls 
+            onUnlock={() => setGameState('PAUSED')}
+            makeDefault 
+         />
+      )}
       <RigidBody 
         ref={bodyRef} 
         colliders={false} 

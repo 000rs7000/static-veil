@@ -51,12 +51,25 @@ export const HUD: React.FC = () => {
       </div>
 
       {/* Bottom Right: Inventory slots */}
-      <div className="absolute bottom-8 right-8 flex gap-4">
-        {[0, 1, 2].map((slot) => (
-          <div key={slot} className="w-12 h-12 border border-white/20 bg-black/40 flex items-center justify-center">
-            {inventory[slot] && <span className="text-xs text-center text-white/80">{inventory[slot]}</span>}
-          </div>
-        ))}
+      <div className="absolute bottom-8 right-8 flex flex-col items-end gap-2">
+        <span className="text-gray-500 text-xs tracking-widest uppercase mb-1">POCKETS</span>
+        <div className="flex gap-4">
+          {[0, 1, 2].map((slot) => (
+            <div key={slot} className="w-14 h-14 border border-white/20 bg-black/60 flex items-center justify-center relative shadow-[0_0_10px_rgba(0,0,0,0.5)]">
+              {inventory[slot] && (
+                <div className="flex flex-col items-center justify-center w-full h-full text-center p-1">
+                  {/* Pseudo item icon based on name */}
+                  {inventory[slot] === 'Hospital Key' && <span className="text-yellow-400 text-xl font-sans font-bold shadow-yellow-500 drop-shadow-md">🗝️</span>}
+                  {inventory[slot] === 'Batteries' && <span className="text-green-400 text-xl font-sans drop-shadow-md">🔋</span>}
+                  {inventory[slot] === 'Strange Tape' && <span className="text-gray-300 text-xl font-sans drop-shadow-md">📼</span>}
+                  <span className="text-[9px] text-white/80 uppercase mt-1 leading-tight tracking-wider font-bold">
+                    {inventory[slot].split(' ')[0]}
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Sanity Vignette overlay base */}

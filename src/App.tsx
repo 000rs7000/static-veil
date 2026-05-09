@@ -3,6 +3,7 @@ import { useGameStore } from './store/useGameStore';
 import { MainMenu } from './components/ui/MainMenu';
 import { LoadingScreen } from './components/ui/LoadingScreen';
 import { HUD } from './components/ui/HUD';
+import { PauseMenu } from './components/ui/PauseMenu';
 import { GameScene } from './components/3d/GameScene';
 import { AudioEngine } from './components/AudioEngine';
 
@@ -15,6 +16,8 @@ export default function App() {
       
       {gameState === 'MENU' && <MainMenu />}
       {gameState === 'LOADING' && <LoadingScreen />}
+      {gameState === 'PAUSED' && <PauseMenu />}
+
       
       {(gameState === 'PLAYING' || gameState === 'PAUSED' || gameState === 'MENU') && (
         <div className="absolute inset-0 z-10">

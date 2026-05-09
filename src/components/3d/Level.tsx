@@ -63,13 +63,11 @@ export const Level = () => {
         </mesh>
       </RigidBody>
       
-      {/* Starting wall behind player */}
-      <RigidBody type="fixed">
-        <mesh position={[0, 2, 10]} receiveShadow castShadow>
-          <boxGeometry args={[10, 4, 1]} />
-          <meshStandardMaterial color="#111111" roughness={0.9} />
-        </mesh>
-      </RigidBody>
+      {/* Start Area dim lights - Always visible */}
+      <group>
+        <pointLight position={[0, 3, -5]} color="#5566aa" intensity={0.15} distance={10} castShadow />
+        <pointLight position={[0, 0.5, -2]} color="#666" intensity={0.2} distance={3} />
+      </group>
 
       {/* Creepy dim red emergency lights */}
       {hasKey && (
