@@ -9,16 +9,6 @@ export const TheHollowMan = ({ isMenu }: { isMenu?: boolean }) => {
   const setSanity = useGameStore(state => state.setSanity);
   const [targetPos, setTargetPos] = useState(new THREE.Vector3(0, 0, -50));
   const [visible, setVisible] = useState(true);
-  
-  // Patrol path waypoints
-  const waypoints = useRef([
-    new THREE.Vector3(3, 0, -10),
-    new THREE.Vector3(-3, 0, -20),
-    new THREE.Vector3(3, 0, -40),
-    new THREE.Vector3(-3, 0, -60),
-    new THREE.Vector3(0, 0, -70),
-  ]);
-  const [currentWaypoint, setCurrentWaypoint] = useState(0);
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
@@ -31,9 +21,9 @@ export const TheHollowMan = ({ isMenu }: { isMenu?: boolean }) => {
     }
 
     // AI Logic during gameplay
-    const distToPlayer = camera.position.distanceTo(meshRef.current.position);
+    const dist = camera.position.distanceTo(meshRef.current.position);
 
-    if (distToPlayer < 15) {
+    if (dist < 15) {
       // Drain sanity if looking at him
       const dirToPlayer = new THREE.Vector3().subVectors(camera.position, meshRef.current.position).normalize();
       const playerForward = new THREE.Vector3();
@@ -49,81 +39,78 @@ export const TheHollowMan = ({ isMenu }: { isMenu?: boolean }) => {
     }
 
     // Teleport logic if player gets too close
-    if (distToPlayer < 5) {
-      if (visible) {
-        setVisible(false);
-        setTimeout(() => {
-          // Appears far behind or far away
-          const back = new THREE.Vector3();
-          camera.getWorldDirection(back);
-          back.multiplyScalar(-20).add(camera.position);
-          setTargetPos(back);
-          setVisible(true);
-        }, 5000);
-      }
-    } else {
-      // If far from player, follow patrol path
-      const activeWaypoint = waypoints.current[currentWaypoint];
-      const distToWaypoint = activeWaypoint.distanceTo(meshRef.current.position);
-      
-      if (distToWaypoint < 1) {
-        // Switch to next waypoint
-        setCurrentWaypoint((prev) => (prev + 1) % waypoints.current.length);
-      } else {
-        setTargetPos(activeWaypoint);
-      }
+    if (dist < 5) {
+      setVisible(false);
+      setTimeout(() => {
+        // Appears far behind or far away
+        const back = new THREE.Vector3();
+        camera.getWorldDirection(back);
+        back.multiplyScalar(-20).add(camera.position);
+        setTargetPos(back);
+        setVisible(true);
+      }, 5000);
     }
     
     // Smoothly interpolate to target position
     if (visible) {
-      // Calculate movement direction
-      const moveDir = new THREE.Vector3().subVectors(targetPos, meshRef.current.position).normalize();
-      // Move slowly
-      meshRef.current.position.add(moveDir.multiplyScalar(delta * 1.5));
+      meshRef.current.position.lerp(targetPos, 0.01);
       meshRef.current.position.y = 0; // lock y
-      
-      // Look at where he's going or at player if close
-      if (distToPlayer < 10) {
-        meshRef.current.lookAt(camera.position.x, 0, camera.position.z);
-      } else {
-        meshRef.current.lookAt(targetPos.x, 0, targetPos.z);
-      }
+      // Look at player
+      meshRef.current.lookAt(camera.position.x, 0, camera.position.z);
     } else {
       meshRef.current.position.set(0, -100, 0); // hide
     }
   });
 
+  // Base y position makes him stand properly.
+  // 9 feet tall is ~2.74 meters/units.
+  
   return (
     <group ref={meshRef}>
-      {/* Tall, unnatural thin body */}
+      {/* Tall, unnatural thin body / Torso (1.2 units long) */}
       <mesh position={[0, 1.8, 0]} castShadow>
-        <cylinderGeometry args={[0.2, 0.1, 3.6, 8]} />
-        <meshStandardMaterial color="#050505" roughness={0.9} />
+        <cylinderGeometry args={[0.2, 0.15, 1.2, 8]} />
+        <meshStandardMaterial color="#020202" roughness={0.9} />
       </mesh>
       
-      {/* Long arms */}
-      <mesh position={[-0.4, 1.5, 0]} rotation={[0, 0, 0.1]} castShadow>
-        <cylinderGeometry args={[0.05, 0.05, 2.5, 8]} />
-        <meshStandardMaterial color="#050505" roughness={0.9} />
+      {/* Extremely Long Legs (~1.5 units) */}
+      <mesh position={[-0.15, 0.75, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.05, 1.5, 8]} />
+        <meshStandardMaterial color="#020202" roughness={0.9} />
       </mesh>
-      <mesh position={[0.4, 1.5, 0]} rotation={[0, 0, -0.1]} castShadow>
-        <cylinderGeometry args={[0.05, 0.05, 2.5, 8]} />
-        <meshStandardMaterial color="#050505" roughness={0.9} />
+      <mesh position={[0.15, 0.75, 0]} castShadow>
+        <cylinderGeometry args={[0.08, 0.05, 1.5, 8]} />
+        <meshStandardMaterial color="#020202" roughness={0.9} />
+      </mesh>
+      
+      {/* Elongated Arms (~1.6 units long) hanging unnaturally low */}
+      <mesh position={[-0.3, 1.7, 0]} rotation={[0, 0, 0.1]} castShadow>
+        <cylinderGeometry args={[0.06, 0.04, 1.6, 8]} />
+        <meshStandardMaterial color="#020202" roughness={0.9} />
+      </mesh>
+      <mesh position={[0.3, 1.7, 0]} rotation={[0, 0, -0.1]} castShadow>
+        <cylinderGeometry args={[0.06, 0.04, 1.6, 8]} />
+        <meshStandardMaterial color="#020202" roughness={0.9} />
       </mesh>
 
-      {/* Cracked Porcelain Mask */}
-      <mesh position={[0, 3.6, 0.1]} castShadow>
-        <sphereGeometry args={[0.2, 16, 16]} />
-        <meshStandardMaterial color="#dddddd" roughness={0.4} />
+      {/* Gaunt Head - 9 feet mark ~2.74 */}
+      <mesh position={[0, 2.6, 0]} castShadow>
+        <sphereGeometry args={[0.18, 16, 16]} />
+        <meshStandardMaterial color="#dddddd" roughness={0.4} /> {/* Cracked Porcelain Color */}
       </mesh>
       
-      {/* Black eyes leaking fluid (simple planes on face) */}
-      <mesh position={[-0.08, 3.65, 0.28]} rotation={[-0.1, 0, 0]}>
-        <planeGeometry args={[0.05, 0.15]} />
+      {/* Hollow black eyes */}
+      <mesh position={[-0.06, 2.62, 0.17]} rotation={[-0.1, 0, 0]}>
+        <planeGeometry args={[0.06, 0.12]} />
         <meshBasicMaterial color="#000000" />
       </mesh>
-      <mesh position={[0.08, 3.65, 0.28]} rotation={[-0.1, 0, 0]}>
-        <planeGeometry args={[0.05, 0.15]} />
+      <mesh position={[0.06, 2.62, 0.17]} rotation={[-0.1, 0, 0]}>
+        <planeGeometry args={[0.06, 0.12]} />
+        <meshBasicMaterial color="#000000" />
+      </mesh>
+      {/* Gaping Mouth */}
+      <mesh position={[0, 2.52, 0.17]} rotation={[-0.1, 0, 0]}>
+        <planeGeometry args={[0.08, 0.15]} />
         <meshBasicMaterial color="#000000" />
       </mesh>
     </group>

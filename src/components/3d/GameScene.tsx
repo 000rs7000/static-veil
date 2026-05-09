@@ -8,6 +8,7 @@ import { PostProcessing } from './PostProcessing';
 import { TheHollowMan } from './TheHollowMan';
 import { useGameStore } from '../../store/useGameStore';
 import { Jumpscare } from './Jumpscare';
+import { MenuKnife } from './MenuKnife';
 
 const keyboardMap = [
   { name: 'forward', keys: ['ArrowUp', 'KeyW'] },
@@ -33,15 +34,18 @@ export const GameScene: React.FC<GameSceneProps> = ({ isMenu }) => {
         camera={{ position: [0, 1.6, 5], fov: 60 }} 
         dpr={[1, 2]}
       >
-        <color attach="background" args={['#000000']} />
+        <color attach="background" args={[isMenu ? '#0a0000' : '#000000']} />
+        
         {/* Dark heavy fog */}
-        {hasKey ? (
+        {isMenu ? (
+          <fog attach="fog" args={['#0a0000', 0, 10]} />
+        ) : hasKey ? (
           <fog attach="fog" args={['#050505', 2, 25]} />
         ) : (
           <fog attach="fog" args={['#000000', 0, 5]} />
         )}
         
-        {hasKey && <ambientLight intensity={0.05} />}
+        {(hasKey || isMenu) && <ambientLight intensity={isMenu ? 0.02 : 0.05} />}
 
         <Physics gravity={[0, -9.81, 0]}>
           <Level />
@@ -49,7 +53,8 @@ export const GameScene: React.FC<GameSceneProps> = ({ isMenu }) => {
           <TheHollowMan isMenu={isMenu} />
         </Physics>
         
-        <Jumpscare />
+        {isMenu && <MenuKnife />}
+        {!isMenu && <Jumpscare />}
 
         <PostProcessing />
       </Canvas>

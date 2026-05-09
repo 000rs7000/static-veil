@@ -4,6 +4,7 @@ import { PointerLockControls, useKeyboardControls } from '@react-three/drei';
 import { RigidBody, RapierRigidBody, CapsuleCollider } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useGameStore } from '../../store/useGameStore';
+import { WomanPlayerModel } from './WomanPlayerModel';
 
 const SPEED = 3.0;
 const RUN_SPEED = 5.0;
@@ -17,24 +18,21 @@ export const Player = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'f' && gameState === 'PLAYING') {
+      if (gameState !== 'PLAYING') return;
+      if (e.key.toLowerCase() === 'f') {
         toggleFlashlight();
       }
-      if (e.key.toLowerCase() === 'm' && gameState === 'PLAYING') {
-        if (document.pointerLockElement) {
-          document.exitPointerLock();
-        } else {
-          setGameState('PAUSED');
-        }
+      if (e.key.toLowerCase() === 'p') {
+        document.exitPointerLock();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleFlashlight, gameState, setGameState]);
+  }, [toggleFlashlight, setGameState, gameState]);
 
   // Sync camera position with physics body
   useFrame((state) => {
-    if (!bodyRef.current) return;
+    if (!bodyRef.current || gameState !== 'PLAYING') return;
 
     // Movement
     const keys = getKeys();
@@ -87,12 +85,18 @@ export const Player = () => {
 
   return (
     <>
-      {gameState === 'PLAYING' && (
-         <PointerLockControls 
-            onUnlock={() => setGameState('PAUSED')}
-            makeDefault 
-         />
-      )}
+      <PointerLockControls 
+        onUnlock={() => {
+          if (useGameStore.getState().gameState === 'PLAYING') {
+            setGameState('PAUSED');
+          }
+        }}
+        onLock={() => {
+          if (useGameStore.getState().gameState === 'PAUSED') {
+            setGameState('PLAYING');
+          }
+        }}
+      />
       <RigidBody 
         ref={bodyRef} 
         colliders={false} 
@@ -102,6 +106,7 @@ export const Player = () => {
         enabledRotations={[false, false, false]}
       >
         <CapsuleCollider args={[0.5, 0.4]} />
+        <WomanPlayerModel />
       </RigidBody>
 
       <spotLight
@@ -117,4 +122,5 @@ export const Player = () => {
     </>
   );
 };
+
 

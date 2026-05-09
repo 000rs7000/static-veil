@@ -21,8 +21,6 @@ interface GameStore {
   setInteractPrompt: (prompt: string | null) => void;
   jumpscareActive: boolean;
   triggerJumpscare: () => void;
-  dialogue: string | null;
-  showDialogue: (text: string, duration?: number) => void;
 }
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -51,10 +49,5 @@ export const useGameStore = create<GameStore>((set) => ({
     setTimeout(() => {
       set({ jumpscareActive: false });
     }, 600);
-  },
-  dialogue: null,
-  showDialogue: (text, duration = 3000) => {
-    set({ dialogue: text });
-    setTimeout(() => set({ dialogue: null }), duration);
   },
 }));

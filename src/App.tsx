@@ -17,7 +17,6 @@ export default function App() {
       {gameState === 'MENU' && <MainMenu />}
       {gameState === 'LOADING' && <LoadingScreen />}
       {gameState === 'PAUSED' && <PauseMenu />}
-
       
       {(gameState === 'PLAYING' || gameState === 'PAUSED' || gameState === 'MENU') && (
         <div className="absolute inset-0 z-10">
@@ -28,6 +27,7 @@ export default function App() {
       )}
 
       {gameState === 'PLAYING' && <HUD />}
+
       
       <div 
         className="pointer-events-none absolute inset-0 z-50 opacity-10 mix-blend-overlay"

@@ -11,6 +11,9 @@ export const AudioEngine: React.FC = () => {
   
   const droneOscRef = useRef<OscillatorNode | null>(null);
   const droneGainRef = useRef<GainNode | null>(null);
+  
+  const heartbeatOscRef = useRef<OscillatorNode | null>(null);
+  const heartbeatGainRef = useRef<GainNode | null>(null);
 
   const isInitialized = useRef(false);
 
@@ -39,6 +42,39 @@ export const AudioEngine: React.FC = () => {
     droneOscRef.current.connect(droneGainRef.current);
     droneGainRef.current.connect(audioCtxRef.current.destination);
     droneOscRef.current.start();
+
+    // --- Heartbeat ---
+    heartbeatOscRef.current = audioCtxRef.current.createOscillator();
+    heartbeatGainRef.current = audioCtxRef.current.createGain();
+    heartbeatOscRef.current.type = 'sine';
+    heartbeatOscRef.current.frequency.value = 40; 
+    heartbeatGainRef.current.gain.value = 0;
+    heartbeatOscRef.current.connect(heartbeatGainRef.current);
+    heartbeatGainRef.current.connect(audioCtxRef.current.destination);
+    heartbeatOscRef.current.start();
+
+    // Setup heartbeat pulsing logic
+    let lastBeat = 0;
+    const pulsing = () => {
+      if (!audioCtxRef.current || !heartbeatGainRef.current) return;
+      const now = audioCtxRef.current.currentTime;
+      const state = useGameStore.getState();
+      
+      if (state.gameState === 'PLAYING') {
+        const bpm = 160 - state.sanity; 
+        const interval = 60 / bpm;
+
+        if (now - lastBeat > interval) {
+          lastBeat = now;
+          heartbeatGainRef.current.gain.setValueAtTime(0.5, now);
+          heartbeatGainRef.current.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          heartbeatGainRef.current.gain.setValueAtTime(0.3, now + 0.2);
+          heartbeatGainRef.current.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        }
+      }
+      requestAnimationFrame(pulsing);
+    };
+    pulsing();
   };
 
   // Click anywhere to unblock AudioContext
